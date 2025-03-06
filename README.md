@@ -13,7 +13,7 @@ This Python script converts a Schwab 1099 Composite and Year-End Summary CSV fil
 
 ## Notes
 
-Tested with Python 3.13 and TurboTax 2024.
+Tested with Python 3.11 and TurboTax 2024.
 
 ## Disclaimer
 
