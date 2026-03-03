@@ -6,19 +6,21 @@ import os
 
 def write_txf_header(output_file):
     """Write the TXF file header per V042 spec."""
+    # Get today's date in MM/DD/YYYY format
+    today = datetime.now().strftime("%m/%d/%Y")
     header = (
         "V042\n"  # TXF version
         "ACharles Schwab\n"  # Application/source identifier
-        "D02/23/2025\n"  # Export date (today's date)
+        f"D{today}\n"  # Export date (today's date)
         "^\n"  # Start of transaction data
     )
     output_file.write(header)
 
 def write_txf_record(output_file, description, date_acquired, date_sold, proceeds, basis, wash, record_type):
     """Write a single transaction record in TXF format per V042 spec."""
-    # Format amounts to two decimal places
+    # Format amounts to two decimal places, except basis of 0
     proceeds_formatted = f"{float(proceeds):.2f}"
-    basis_formatted = f"{float(basis):.2f}"
+    basis_formatted = "" if float(basis) == 0 else f"{float(basis):.2f}"  # Empty if basis is 0
     wash_formatted = f"{float(wash):.2f}" if wash else "0.00"
 
     record = (
@@ -27,9 +29,9 @@ def write_txf_record(output_file, description, date_acquired, date_sold, proceed
         "C1\n"  # Copy number (always 1 for single 1099-B)
         "L1\n"  # Line number (always 1 per record)
         f"P{description}\n"  # Description field
-        f"D{date_acquired}\n"  # Date acquired
+        f"D{date_acquired}\n"  # Date acquired (empty if not provided)
         f"D{date_sold}\n"  # Date sold
-        f"${basis_formatted}\n"  # Cost basis
+        f"${basis_formatted}\n"  # Cost basis (empty $ if 0)
         f"${proceeds_formatted}\n"  # Sales proceeds
     )
     if float(wash_formatted) != 0:  # Include wash sale only if non-zero
@@ -44,7 +46,7 @@ def convert_schwab_csv_to_txf(csv_file_path):
     total_proceeds = 0.0
     total_basis = 0.0
     total_wash = 0.0
-    total_wash_adjusted_gain_loss = 0.0  # New variable for wash-adjusted gain/loss
+    total_wash_adjusted_gain_loss = 0.0  # Total wash-adjusted gain/loss
 
     # Mapping of Form 8949 Codes to TXF record types
     form_8949_to_record_type = {
@@ -109,8 +111,8 @@ def convert_schwab_csv_to_txf(csv_file_path):
                 except ValueError:
                     raise ValueError("Invalid monetary value in row")
 
-                # Calculate wash-adjusted gain/loss for this transaction
-                wash_adjusted_gain_loss = proceeds_float - (basis_float - wash_float)
+                # Calculate wash-adjusted gain/loss: (proceeds - basis) + wash
+                wash_adjusted_gain_loss = (proceeds_float - basis_float) + wash_float
                 total_wash_adjusted_gain_loss += wash_adjusted_gain_loss  # Accumulate total
 
                 # Validate and format Date Sold
@@ -121,7 +123,7 @@ def convert_schwab_csv_to_txf(csv_file_path):
 
                 # Handle Date Acquired
                 if not date_acquired:  # Empty string
-                    date_acquired_formatted = date_sold_formatted
+                    date_acquired_formatted = ""  # Output empty date in TXF
                 elif date_acquired.lower() == "various":
                     date_acquired_formatted = "VARIOUS"  # All uppercase
                 else:
@@ -153,8 +155,8 @@ def convert_schwab_csv_to_txf(csv_file_path):
         print("Verify these totals with your Schwab 1099-B summary:")
         print(f"Total Proceeds: ${total_proceeds:.2f}")
         print(f"Total Basis: ${total_basis:.2f}")
-        print(f"Total Wash Sale Adjustments: ${total_wash:.2f}")
         print(f"Total Gain/Loss: ${total_proceeds - total_basis:.2f}")
+        print(f"Total Wash Sale Adjustments: ${total_wash:.2f}")
         print(f"Wash-Adjusted Total Gain/Loss: ${total_wash_adjusted_gain_loss:.2f}")
 
     return txf_file_path
