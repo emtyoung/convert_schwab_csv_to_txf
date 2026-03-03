@@ -1,6 +1,8 @@
 # Convert Schwab 1099 CSV to TXF
 
-This Python script converts a Schwab 1099 Composite and Year-End Summary CSV file into a TXF file that can be imported into tax software like TurboTax. Generated and modified with prompts to Grok 3.
+This Python script converts stock transactions in a Schwab 1099 Composite and Year-End Summary CSV file into a TXF file that can be imported into tax software like TurboTax. Generated and modified with prompts to Grok 3.
+
+The 2nd script convert_fidelity_csv_to_txf.py converts stock transactions in a Fidelity 1099 Summary CSV file into a TXF file that can be imported into tax software like TurboTax. Generated in one shot using Claude Code, free-claude-code proxy and GLM-4.7 on Nvidia NIM.
 
 ## Usage
 
@@ -14,7 +16,8 @@ This Python script converts a Schwab 1099 Composite and Year-End Summary CSV fil
 ## Notes
 
 Tested with Python 3.11 and TurboTax 2024.
+Tested with Python 3.14 and TurboTax 2025.
 
 ## Disclaimer
 
-This script is provided as-is, without any warranty. Use it at your own risk. It is recommended to review the generated TXF file before importing it into your tax software.
+The scripts are provided as-is, without any warranty. Use it at your own risk. It is recommended to review the generated TXF file before importing it into your tax software.
